@@ -5,10 +5,12 @@ mongoose.promise = Promise;
 
 let contactSchema = new Schema(
   {
-    userId: [{ type: Schema.Types.ObjectId, ref: "Contact" }],
+    user: [{ type: Schema.Types.ObjectId, ref: "User" }],
     firstName: String,
     lastName: String,
-    phoneNumber: String,
+    email: String,
+    phone: String,
+    isDeleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

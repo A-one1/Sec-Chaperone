@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const http = require("http");
+var proxy = require("express-http-proxy");
 const express = require("express");
 const mongoose = require("./database");
 const session = require("express-session");
@@ -13,6 +14,7 @@ const bodyParser = require("body-parser");
 //import routes
 var authRoutes = require("./routes/auth");
 var contactRoutes = require("./routes/contact");
+var eventRoutes = require("./routes/event");
 
 //environment variables
 const PORT = process.env.PORT || 443;
@@ -36,12 +38,16 @@ app.use(passport.session());
 app.use(passport.authenticate("session"));
 
 //middleware
-app.use(cors());
+app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
 //route middleware
-app.use("/auth", authRoutes);
-app.use("/contact", contactRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/event", eventRoutes);
+
+//Forward to web app
+app.use("/", proxy("http://127.0.0.1:3000"));
 
 http.createServer(app).listen(PORT, HOST, () => {
   console.log(`Server listening on ${PORT}`);

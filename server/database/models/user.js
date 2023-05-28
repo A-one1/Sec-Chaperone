@@ -7,11 +7,13 @@ mongoose.promise = Promise;
 
 let userSchema = new Schema(
   {
-    username: String,
-    name: String,
     googleId: String,
+    username: String,
+    email: String,
+    name: String,
     secret: String,
     deactivationDateTime: Date,
+    isDeleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

@@ -5,16 +5,17 @@ mongoose.promise = Promise;
 
 let eventSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User" },
-    contactId: [{ type: Schema.Types.ObjectId, ref: "Contact" }],
+    user: { type: Schema.Types.ObjectId, ref: "User" },
+    contacts: [{ type: Schema.Types.ObjectId, ref: "Contact" }],
     title: String,
-    description: String,
-    address: String,
+    location: String,
+    notes: String,
     eventDateTime: Date,
     eventStartMessageDispatched: Boolean,
     nextCheckIn: Date,
     checkInMessageDispatched: Boolean,
     stopChecking: Boolean,
+    isDeleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

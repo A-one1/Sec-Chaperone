@@ -12,7 +12,7 @@ const startup = async function () {
 
   console.log("Agenda has started");
 
-  await agenda.every("5 minutes", "correspond about active events");
+  await agenda.every("30 seconds", "correspond about active events");
 };
 // loop through the job_list folder and pass in the agenda instance to
 // each job so that it has access to its API.

@@ -9,7 +9,7 @@ passport.serializeUser((user, done) => {
 
 // user object attaches to the request as req.user
 passport.deserializeUser((id, done) => {
-  User.findOne({ _id: id }, "username", (err, user) => {
+  User.findOne({ _id: id, isDeleted: false }, "username", (err, user) => {
     done(null, user);
   });
 });
@@ -19,13 +19,14 @@ passport.use(
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "http://localhost:8000/auth/google/callback",
+      callbackURL: "http://localhost:8000/api/auth/google/callback",
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     function (accessToken, refreshToken, profile, cb) {
       User.findOrCreate(
         { googleId: profile.id, username: profile.id },
         function (err, user) {
+          user.email = profile.emails[0].value;
           user.name = profile.displayName;
           user.save();
           return cb(err, user);
