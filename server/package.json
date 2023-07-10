@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "agenda": "^4.3.0",
+    "aws-sdk": "^2.1407.0",
     "body-parser": "^1.20.0",
     "connect-mongo": "^4.6.0",
     "cors": "^2.8.5",
@@ -27,6 +28,7 @@
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
-    "passport-local-mongoose": "^7.1.2"
+    "passport-local-mongoose": "^7.1.2",
+    "twilio": "^4.13.0"
   }
 }

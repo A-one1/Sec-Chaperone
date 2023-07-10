@@ -26,7 +26,7 @@ const app = express();
 //session
 app.use(
   session({
-    secret: process.env.APP_SECRET,
+    secret: "abcdef",
     resave: false,
     saveUninitialized: false,
     store: mongoDbStore.create({ mongoUrl: process.env.MONGO_SESSIONS_URI }),
@@ -40,6 +40,13 @@ app.use(passport.authenticate("session"));
 //middleware
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
+
+app.use("/", (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 
 //route middleware
 app.use("/api/auth", authRoutes);
