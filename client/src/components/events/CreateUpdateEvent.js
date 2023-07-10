@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { AlertCircleOutline, CloseOutline } from "react-ionicons";
 import {
   Link,
-  unstable_HistoryRouter,
   useNavigate,
   useParams,
 } from "react-router-dom";
@@ -200,6 +199,8 @@ export default function CreateUpdateEvent() {
         location: location,
         contacts: contactIds,
       });
+      navigate("/");
+
     };
 
     if (validateForm()) {
@@ -226,6 +227,7 @@ export default function CreateUpdateEvent() {
       if (res.data._id !== undefined) {
         navigate("/events/" + res.data._id);
       }
+      navigate("/");
     };
 
     if (validateForm()) {
@@ -361,7 +363,7 @@ export default function CreateUpdateEvent() {
           &ensp;
         </ButtonToolbar>
       </Form>
-      <Modal isOpen={modal} toggle={toggle} fullscreen>
+      <Modal isOpen={modal} toggle={toggle} >
         <ModalHeader toggle={toggle}>Are you sure?</ModalHeader>
         <ModalBody>Are you sure you want to delete this event?</ModalBody>
         <ModalFooter>

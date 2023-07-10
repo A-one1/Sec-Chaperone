@@ -20,13 +20,24 @@ router.get("/", ensureAuthenticated, (req, res) => {
       res.send(events);
     });
 });
+router.get("/allevents", ensureAuthenticated, (req, res) => {
+  Event.find({
+    user: ObjectId(req.user.id),
+    isDeleted: false,
+  })
+    .sort({ eventDateTime: "asc" })
+    .populate("contacts")
+    .exec((err, events) => {
+      res.send(events);
+    });
+});
 
 router.get("/:id", ensureAuthenticated, (req, res) => {
   Event.findOne({
     _id: ObjectId(req.params.id),
     user: ObjectId(req.user.id),
-    stopChecking: false,
-    isDeleted: false,
+    // stopChecking: false,
+    // isDeleted: false,
   })
     .populate("contacts")
     .exec((err, event) => {
@@ -47,8 +58,8 @@ router.post("/new", ensureAuthenticated, (req, res) => {
     res.status(400).send({ error: "notes is missing!" });
   } else if (
     req.body.eventDateTime == null ||
-    isNaN(Date.parse(req.body.eventDateTime)) ||
-    DateTime.fromISO(req.body.eventDateTime) < DateTime.now()
+    isNaN(Date.parse(req.body.eventDateTime))
+    // ||DateTime.fromISO(req.body.eventDateTime) < DateTime.now()
   ) {
     res.status(400).send({
       error: "eventDateTime is missing or could not be parsed or too early!",
@@ -102,16 +113,20 @@ router.post("/:id/checkin", ensureAuthenticated, (req, res) => {
       res.status(400).send({ error: "notes is missing!" });
     } else {
       if (event != undefined) {
-        if (DateTime.fromJSDate(event.nextCheckIn) <= DateTime.now()) {
+
+        const checkInInterval= req.body.checkInInterval || 10;
+        // if (DateTime.fromJSDate(event.nextCheckIn) <= DateTime.now()) {
+        if (DateTime.fromJSDate(event.eventDateTime) <= DateTime.now()) {
           event.stopChecking = req.body.stopChecking;
           event.notes = req.body.notes === undefined ? "" : req.body.notes;
-          event.nextCheckIn = DateTime.now().plus({ minutes: 15 }).toISO();
+          event.nextCheckIn = DateTime.now().plus({ minutes: checkInInterval }).toISO();
 
           event.save().then((event) => {
             res.status = 200;
             res.send({ status: "Event checked in!" });
           });
         } else {
+          console.log("eventttt", event);
           res.status(400).send({ error: "It's too early for check-in" });
         }
       } else {
@@ -125,7 +140,7 @@ router.put("/:id", ensureAuthenticated, (req, res) => {
   Event.findOne({
     _id: ObjectId(req.params.id),
     user: ObjectId(req.user.id),
-    stopChecking: false,
+    // stopChecking: false,
     isDeleted: false,
   }).exec((err, event) => {
     if (req.body.title == "" || req.body.title == null) {
@@ -136,8 +151,8 @@ router.put("/:id", ensureAuthenticated, (req, res) => {
       res.status(400).send({ error: "notes is missing!" });
     } else if (
       req.body.eventDateTime == null ||
-      isNaN(Date.parse(req.body.eventDateTime)) ||
-      DateTime.fromISO(req.body.eventDateTime) < DateTime.now()
+      isNaN(Date.parse(req.body.eventDateTime))
+      // ||DateTime.fromISO(req.body.eventDateTime) < DateTime.now()
     ) {
       res.status(400).send({
         error:
@@ -165,7 +180,11 @@ router.put("/:id", ensureAuthenticated, (req, res) => {
         event.location = req.body.location;
         event.notes = req.body.notes === undefined ? "" : req.body.notes;
         event.eventDateTime = req.body.eventDateTime;
-        event.nextCheckIn = req.body.nextCheckIn;
+
+        if (new Date(req.body.eventDateTime) > new Date()) {
+          event.stopChecking = false;
+          event.nextCheckIn = req.body.eventDateTime;
+        }
 
         event.save().then((event) => {
           res.status = 202;

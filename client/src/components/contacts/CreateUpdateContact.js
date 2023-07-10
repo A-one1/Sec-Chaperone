@@ -48,6 +48,8 @@ export default function CreateUpdateContact() {
           setEmail(res.data.email);
         })
         .catch((err) => {
+          console.log("🚀 ~ file: CreateUpdateContact.js:51 ~ useEffect ~ err:", err)
+          
           setNotFound(true);
         });
     }
@@ -69,7 +71,7 @@ export default function CreateUpdateContact() {
 
   const changePhone = (e) => {
     const addDashes = (input, previousValue) => {
-      input = input.replaceAll(/[^0-9\-]/g, "");
+      input = input.replaceAll(/[^0-9]/g, "");
       if (
         input.replaceAll(/[^0-9]/g, "") >
         previousValue.replaceAll(/[^0-9]/g, "")
@@ -116,13 +118,13 @@ export default function CreateUpdateContact() {
     setEmailMessage(undefined);
     setPhoneMessage(undefined);
 
-    if (!(firstName != "" && firstName != null)) {
+    if (!(firstName !== "" && firstName !== null)) {
       setFirstNameMessage(
         <FormFeedback>First name cannot be empty.</FormFeedback>
       );
       isOk = false;
     }
-    if (!(lastName != "" && lastName != null)) {
+    if (!(lastName !== "" && lastName !== null)) {
       setLastNameMessage(
         <FormFeedback>Last name cannot be empty.</FormFeedback>
       );
@@ -163,6 +165,7 @@ export default function CreateUpdateContact() {
         phone: phone,
         email: email,
       });
+      navigate("/contacts");
     };
 
     if (validateForm()) {
@@ -182,6 +185,7 @@ export default function CreateUpdateContact() {
       if (res.data._id !== undefined) {
         navigate("/contacts/" + res.data._id);
       }
+      navigate("/contacts");
     };
 
     if (validateForm()) {
@@ -289,7 +293,7 @@ export default function CreateUpdateContact() {
           &ensp;
         </ButtonToolbar>
       </Form>
-      <Modal isOpen={modal} toggle={toggle} fullscreen>
+      <Modal isOpen={modal} toggle={toggle} >
         <ModalHeader toggle={toggle}>Are you sure?</ModalHeader>
         <ModalBody>Are you sure you want to delete this contact?</ModalBody>
         <ModalFooter>

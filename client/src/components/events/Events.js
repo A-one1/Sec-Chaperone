@@ -1,16 +1,13 @@
 import {
   AddCircleOutline,
-  AddCircleSharp,
   LocationOutline,
   PersonOutline,
   TimeOutline,
 } from "react-ionicons";
-import { Route, Router, Routes, useNavigate } from "react-router-dom";
+import { Route,  Routes, useNavigate } from "react-router-dom";
 import CreateUpdateEvent from "./CreateUpdateEvent";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { CallOutline, MailOutline } from "react-ionicons";
-import md5 from "blueimp-md5";
 import { DateTime } from "luxon";
 
 export default function Events() {
@@ -30,9 +27,12 @@ function ListEvents() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    axios.get("/api/event").then((res, err) => {
-      if (res.status != 500) {
-        setEvents(res.data);
+    axios.get("/api/event/allevents").then((res, err) => {
+      if (res.status !== 500) {
+        const sortedEvents = res.data.sort((a, b) => {
+          return new Date(b.eventDateTime) - new Date(a.eventDateTime);
+        });
+        setEvents(sortedEvents);
       }
     });
   }, [setEvents]);
@@ -74,7 +74,7 @@ function ListEvents() {
 
   return (
     <div className="events">
-      <h2>Events</h2>
+      <h3>Events</h3>
       <div className="event-list">
         <ul>
           <li
@@ -87,8 +87,13 @@ function ListEvents() {
               <AddCircleOutline /> Add Event
             </div>
           </li>
-          {eventRender}
         </ul>
+      </div>
+      <br/><br/>
+
+      <h3>Previous Events</h3>
+      <div className="event-list">
+        <ul>{eventRender}</ul>
       </div>
     </div>
   );
