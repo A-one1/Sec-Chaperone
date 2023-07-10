@@ -1,112 +1,96 @@
 const Contact = require("../../database/models/contact");
 const Event = require("../../database/models/event");
 const AWS = require("aws-sdk");
+const { ObjectId } = require("bson");
+const User = require("../../database/models/user");
 
-var aws_region = "us-east-1";
-var originationNumber = "+12065550199";
-var messageType = "TRANSACTIONAL";
+// var aws_region = "us-east-2";
+// var originationNumber = "+18334711072";
+// var messageType = "TRANSACTIONAL";
+var UserName = "";
 
 module.exports = (agenda) => {
   agenda.define("correspond about active events", (job, done) => {
+    console.log("this is your current ongoing event");
     Event.find({
-      nextCheckIn: { $lte: new Date(new Date() - 15 * 60000) },
+      nextCheckIn: { $lt: new Date(Date.now() - 10 * 60 * 1000) },
       stopChecking: false,
       isDeleted: false,
     })
       .populate("contacts")
       .exec((err, events) => {
-        events.forEach(async (event) => {
-          console.log("Dispatching event" + JSON.stringify(event));
+        if (err) {
+          console.log("EVENT ERROR", err);
+          return done(err);
+        }
+        events.forEach((event) => {
+          console.log(
+            "🚀 ~ file: correspondActiveEvent.js:58 ~ events.forEach ~ event:",
+            event
+          );
 
-          console.log(event.contacts);
+          //console.log("Dispatching event" + JSON.stringify(event));
+          console.log("event contact", event.contacts);
+          console.log(
+            "contact first name",
+            event.contacts.firstName,
+            event.contacts.lastName
+          );
+
           var contactsNumbers = event.contacts.map((contact) => {
-            return "+1" + contact.phone.replaceAll("-", "");
+            return "+1" + contact.phone.replace(/-/g, "");
           });
+          console.log(
+            "🚀 ~ file: correspondActiveEvent.js:43 ~ contactsNumbers ~ contactsNumbers:",
+            contactsNumbers
+          );
 
-          /**************************************** */
-
-          var params = {
-            originator: "12029339986",
-            recipients: contactsNumbers,
-            body: "Hey this is Secret Chaperone letting you know that blank is in trouble.",
-          };
-
-          // The AWS Region that you want to use to send the message. For a list of
-          // AWS Regions where the Amazon Pinpoint API is available, see
-          // https://docs.aws.amazon.com/pinpoint/latest/apireference/.
-          var aws_region = "us-east-1";
-
-          // The content of the SMS message.
-          var message =
-            "Hey this is Secret Chaperone letting you know that blank" +
-            " is in trouble. Reply STOP to opt out.";
-
-          // The Amazon Pinpoint project/application ID to use when you send this message.
-          // Make sure that the SMS channel is enabled for the project or application
-          // that you choose.
-          var applicationId = "4bd3a5db837a469182f399661731173f";
-
-          // The registered keyword associated with the originating short code.
-          var registeredKeyword = "KEYWORD_847941559988";
-
-          // The sender ID to use when sending the message. Support for sender ID
-          // varies by country or region. For more information, see
-          // https://docs.aws.amazon.com/pinpoint/latest/userguide/channels-sms-countries.html
-          var senderId = "SecChapTest";
-
-          // Specify that you're using a shared credentials file, and optionally specify
-          // the profile that you want to use.
-          var credentials = new AWS.SharedIniFileCredentials({
-            profile: "default",
-          });
-          AWS.config.credentials = credentials;
-
-          // Specify the region.
-          AWS.config.update({ region: aws_region });
-
-          //Create a new Pinpoint object.
-          var pinpoint = new AWS.Pinpoint();
-
-          for (const destinationNumber in contactsNumbers) {
-            // Specify the parameters to pass to the API.
-            var params = {
-              ApplicationId: applicationId,
-              MessageRequest: {
-                Addresses: {
-                  [destinationNumber]: {
-                    ChannelType: "SMS",
-                  },
-                },
-                MessageConfiguration: {
-                  SMSMessage: {
-                    Body: message,
-                    Keyword: registeredKeyword,
-                    MessageType: messageType,
-                    OriginationNumber: originationNumber,
-                    SenderId: senderId,
-                  },
-                },
-              },
-            };
-
-            //Try to send the message.
-            pinpoint.sendMessages(params, function (err, data) {
-              // If something goes wrong, print an error message.
-              if (err) {
-                console.log(err.message);
-                // Otherwise, show the unique ID for the message.
-              } else {
-                console.log(
-                  "Message sent! " +
-                    data["MessageResponse"]["Result"][destinationNumber][
-                      "StatusMessage"
-                    ]
-                );
+          const result = User.findOne({ _id: event.user }).exec(
+            (err, result) => {
+              if (result) {
+                UserName = result.name;
+                console.log("username", UserName);
               }
+            }
+          );
+
+          const accountSid = process.env.ACCOUNT_SID;
+          const authToken = process.env.AUTH_TOKEN;
+          const client = require("twilio")(accountSid, authToken);
+
+          setTimeout(() => {
+            contactsNumbers.forEach((number) => {
+              client.messages
+                .create({
+                  body:
+                    "Hello there" +
+                    "\n" +
+                    "This is Secret Chaperone contacting you on behalf of " +
+                    UserName +
+                    ". You have been added as an emergency contact by " +
+                    UserName +
+                    ". They have scheduled a " +
+                    event.title +
+                    " at location " +
+                    event.location +
+                    " scheduled for " +
+                    event.eventDateTime.toLocaleString() +
+                    "\n" +
+                    "This is the notes" +
+                    event.notes +
+                    "\n" +
+                    +"We kindly request that you reach out to make sure everything is okay.",
+                  from: "+18335674562",
+                  to: number,
+                })
+                .then((message) => {
+                  console.log(message.sid);
+                  console.log("MESSAGE SENT SUCCESFULLY");
+                });
             });
-          }
+          }, 5000);
         });
       });
+    done();
   });
-  done();
 };
