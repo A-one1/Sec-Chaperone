@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  AddCircleOutline,
   AddSharp,
-  Location,
   LocationOutline,
-  Pencil,
-  PencilOutline,
-  Receipt,
   ReceiptOutline,
-  Settings,
   SettingsOutline,
-  Time,
   TimeOutline,
 } from "react-ionicons";
 import { Badge } from "reactstrap";
@@ -19,10 +12,11 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import Events from "./events/Events";
 import Contacts from "./contacts/Contacts";
 import useInterval from "use-interval";
+import CheckInModal from "./CheckInModal";
 const { DateTime } = require("luxon");
 const md5 = require("blueimp-md5");
 
-export default function Dashboard({ nextEvent }) {
+export default function Dashboard({ nextEvent, trigger }) {
   useEffect(() => {}, [nextEvent]);
 
   return (
@@ -30,7 +24,7 @@ export default function Dashboard({ nextEvent }) {
       <Routes>
         <Route
           path="/"
-          element={<UpcomingEvent nextEvent={nextEvent} />}
+          element={<UpcomingEvent nextEvent={nextEvent} trigger={trigger} />}
           exact
         />
         <Route path="/events/*" element={<Events />} />
@@ -40,13 +34,23 @@ export default function Dashboard({ nextEvent }) {
   );
 }
 
-function UpcomingEvent({ nextEvent }) {
+function UpcomingEvent({ nextEvent, trigger }) {
   let navigate = useNavigate();
 
-  useEffect(() => {}, [nextEvent]);
+  const [showModal, setshowModal] = useState();
+
+  const checkInModal = () => {
+    console.log("BUTTON CLICKEDD");
+    setshowModal(true);
+  };
+
+  useEffect(() => {}, [nextEvent, showModal]);
 
   let badge = <Badge pill color="info"></Badge>;
   let show_checkin = false;
+  let checkin_button =
+    DateTime.fromISO(nextEvent?.eventDateTime).diffNow(["minutes"]) < 10;
+
   let checkin_status = (
     <Badge
       pill
@@ -90,9 +94,9 @@ function UpcomingEvent({ nextEvent }) {
     );
   }
 
-  var contactRender = nextEvent?.contacts.map((x) => {
+  var contactRender = nextEvent?.contacts.map((x,index) => {
     return (
-      <li>
+      <li key={index}>
         <img
           src={
             "https://www.gravatar.com/avatar/" +
@@ -111,7 +115,7 @@ function UpcomingEvent({ nextEvent }) {
       <div className="event-card">
         <div className="header">
           <h3>
-            {nextEvent.title}
+            <b>{nextEvent.title}</b>
             <br />
             {badge} {show_checkin ? checkin_status : undefined}
           </h3>
@@ -156,6 +160,25 @@ function UpcomingEvent({ nextEvent }) {
             <h4>Contacts</h4>
             <ul>{contactRender}</ul>
           </div>
+        </div>
+        <div>
+          {checkin_button && (
+            <button
+              type="button"
+              className="btn btn-info"
+              onClick={checkInModal}
+            >
+              Check In
+            </button>
+          )}
+          {showModal && (
+            <CheckInModal
+              nextEvent={nextEvent}
+              showModal={showModal}
+              setshowModal={setshowModal}
+              trigger={trigger}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -23,6 +23,7 @@ function App() {
 
   const trigger = () => {
     fetchData();
+    console.log("TRIGGEREDDD!!!!!")
   };
 
   const fetchData = () => {
@@ -35,7 +36,7 @@ function App() {
             if (
               DateTime.fromISO(nextEvent.eventDateTime) >
                 DateTime.fromISO(element.eventDateTime) &&
-              element.stopChecking != true
+              element.stopChecking == false
             ) {
               nextEvent = element;
             }
@@ -46,6 +47,7 @@ function App() {
           setNextEvent(undefined);
           setConnectionError(false);
         }
+
       })
       .catch((err) => {
         setConnectionError(true);
@@ -70,7 +72,7 @@ function App() {
     } else {
       fetchData();
     }
-  }, 10000);
+  }, 1000);
 
   return (
     <Router>
@@ -84,11 +86,11 @@ function App() {
           JSON.stringify({ status: "Not Authorized" }) ? (
             <Route path="/*" element={<About />} />
           ) : (
-            <Route path="/*" element={<Dashboard nextEvent={nextEvent} />} />
+            <Route path="/*" element={<Dashboard nextEvent={nextEvent} trigger={trigger}/>} />
           )}
         </Routes>
       </div>
-      <CheckInModal nextEvent={nextEvent} trigger={trigger} />
+      <CheckInModal nextEvent={nextEvent} trigger={trigger} showModal={false} />
     </Router>
   );
 }

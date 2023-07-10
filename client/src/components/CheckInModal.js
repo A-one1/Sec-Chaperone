@@ -13,27 +13,67 @@ import {
   ModalFooter,
   ModalHeader,
 } from "reactstrap";
-import useInterval from "use-interval";
+import Countdown from "react-countdown";
 
-export default function CheckInModal({ nextEvent, trigger }) {
+export default function CheckInModal({
+  nextEvent,
+  trigger,
+  showModal,
+  setshowModal,
+}) {
   const [modal, setModal] = useState(false);
   const [notes, setNotes] = useState("");
   const [stopChecking, setStopChecking] = useState(undefined);
+  const [checkInInterval, setCheckInInterval] = useState(10);
+  const [countdownDate, setCountdownDate] = useState(null);
+
+  const Completionist = () => <span>Message sent successfully!</span>;
+
+  const renderer = ({ minutes, seconds, completed }) => {
+    if (completed) {
+      return <Completionist />;
+    } else {
+      return (
+        <span>
+          {minutes}:{seconds}
+        </span>
+      );
+    }
+  };
 
   useEffect(() => {
-    if (nextEvent != undefined) {
+    if (nextEvent !== undefined && showModal == false) {
       const shouldOpen =
         DateTime.fromISO(nextEvent.nextCheckIn) <= DateTime.now();
-      if (setModal == false && shouldOpen) {
+      if (setModal === false && shouldOpen) {
         setNotes(nextEvent.notes);
       }
       setModal(shouldOpen);
+    } else if (nextEvent !== undefined && showModal == true) {
+      const shouldOpen = true;
+      if (modal === false && shouldOpen) {
+        setNotes(nextEvent.notes);
+        setModal(shouldOpen);
+      }
     }
   }, [nextEvent]);
 
+  useEffect(() => {
+    if (nextEvent?.nextCheckIn) {
+      setCountdownDate(DateTime.fromISO(nextEvent.nextCheckIn) + 600000);
+    }
+  }, [showModal, nextEvent]);
+
   return (
     <Modal isOpen={modal}>
-      <ModalHeader>It's Time to Check In</ModalHeader>
+      <ModalHeader>
+        <div className="header-container">
+          <div>It's Time to Check In</div>
+          <div className="countdown-container">
+            <Countdown date={countdownDate} renderer={renderer} />
+          </div>
+        </div>
+      </ModalHeader>
       <ModalBody>
         <Form>
           <FormGroup tag="fieldset">
@@ -70,11 +110,22 @@ export default function CheckInModal({ nextEvent, trigger }) {
               <Label check htmlFor="opt2">
                 <Alert color="warning">
                   <h5>I'm Unsure</h5>
-                  <h6>
-                    That's alright we'll check back with you in 15 minutes.
-                  </h6>
+                  <h6>That's alright we'll check back with you later.</h6>
                 </Alert>
               </Label>
+            </FormGroup>
+            <FormGroup>
+              <Label check htmlFor="checkInInterval">
+                Check-In After? (minutes):
+              </Label>
+              <Input
+                type="number"
+                id="checkInInterval"
+                value={checkInInterval}
+                onChange={(e) => setCheckInInterval(e.target.value)}
+                min={1}
+                max={60}
+              />
             </FormGroup>
           </FormGroup>
           <FormGroup>
@@ -100,10 +151,19 @@ export default function CheckInModal({ nextEvent, trigger }) {
               .post("/api/event/" + nextEvent._id + "/checkin", {
                 stopChecking: stopChecking === "true" ? true : false,
                 notes: notes,
+                checkInInterval: checkInInterval,
               })
               .then((e) => {
-                trigger();
                 setModal(false);
+                setshowModal(false);
+                if (trigger && typeof trigger === "function") {
+                  trigger();
+                } else {
+                  console.log("NO TRIGGER FUNCTION!!!");
+                }
+              })
+              .catch((err) => {
+                console.log("modal error", err);
               });
           }}
         >
