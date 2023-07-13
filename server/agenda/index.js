@@ -1,33 +1,58 @@
-const Agenda = require("agenda");
+setTimeout(async () => {
+  const Agenda = require("agenda");
+  const correspondActiveEvent = require("./jobs_list/correspondActiveEvent");
 
-const agenda = new Agenda({ db: { address: process.env.MONGO_AGENDA_URI } });
+  const agenda = new Agenda({ db: { address: process.env.MONGO_AGENDA_URI } });
 
-// list the different jobs availale throughout your app
-let jobTypes = ["correspondActiveEvent"];
+  let jobTypes = ["correspondActiveEvent", "demoJob"]; // Add "demoJob" to the job types
 
-const startup = async function () {
-  console.log("Agenda is starting...");
-  // IIFE to give access to async/await
-  await agenda.start();
+  const startup = async function () {
+    try {
+      console.log("Agenda is starting...");
+      await agenda.start();
+      console.log("Agenda has started");
 
-  console.log("Agenda has started");
+      agenda.every("5 second", "correspond about active events"); // Schedule the "correspond about active events" job
+      agenda.every("5 second", "demoJob"); // Schedule the "demoJob" every 1 second
+      console.log("Jobs have been scheduled");
+    } catch (error) {
+      console.error("Error starting Agenda:", error);
+    }
+  };
 
-  await agenda.every("30 seconds", "correspond about active events");
-};
-// loop through the job_list folder and pass in the agenda instance to
-// each job so that it has access to its API.
-jobTypes.forEach((type) => {
-  // the type name should match the file name in the jobs_list folder
-  require("./jobs_list/" + type)(agenda);
-});
-
-if (jobTypes.length) {
-  // if there are jobs in the jobsTypes array set up
-  agenda.on("ready", async () => {
-    await startup();
+  jobTypes.forEach((type) => {
+    try {
+      require("./jobs_list/" + type)(agenda);
+    } catch (error) {
+      console.error(`Error loading job type '${type}':`, error);
+    }
   });
-}
 
+  // Add the demo job implementation
+  agenda.define("demoJob", async (job) => {
+    try {
+      console.log("Hello from demoJob");
+    } catch (error) {
+      console.error("Error in the demoJob:", error);
+    }
+  });
+
+  if (jobTypes.length) {
+    console.log(1);
+
+    agenda.on("ready", async () => {
+      try {
+        await startup();
+      } catch (error) {
+        console.error("Error starting Agenda:", error);
+      }
+    });
+  }
+  agenda.on("error", (error) => {
+    console.error("Agenda error:", error);
+  });
+
+  
 let graceful = () => {
   agenda.stop(() => process.exit(0));
 };
@@ -35,4 +60,6 @@ let graceful = () => {
 process.on("SIGTERM", graceful);
 process.on("SIGINT", graceful);
 
-module.exports = agenda;
+
+  module.exports = agenda;
+}, 1000); // Delay of 5000 milliseconds (5 seconds)
