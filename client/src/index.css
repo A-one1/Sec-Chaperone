@@ -519,6 +519,8 @@ body {
 }
 
 .events > .event-list > ul > li > .header > .primary {
+  position: relative;
+
   font-weight: 700;
   font-size: 1.3em;
   color: var(--bs-gray-800);
@@ -575,6 +577,7 @@ body {
   right: 14px;
   font-size: 18px;
 }
+
 #information {
   position: absolute;
   top: 100%;
@@ -586,7 +589,74 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
+.hover-message {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 9px;
+  background-color: #fff1c1;
+  border: 1px solid #fde390;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #333;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+.delete-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 5px;
+  font-size: 30px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.delete-button:hover,
+.delete-button:hover svg {
+  color: red;
+  font-size: 20px;
+}
 
+.hover-message::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid #fde390;
+  border-width: 0 10px 10px 10px;
+  border-color: transparent transparent #fff1c1 transparent;
+}
+
+/* Responsive styles */
+@media only screen and (max-width: 768px) {
+  .hover-message {
+    transform: translateX(-70%);
+    width: calc(100%+50px); /* Adjust the value as needed */
+    margin-left: -50px; /* Half of the added width */
+    background-color: #fff1c1;
+    border-radius: 8px;
+  }
+  .hover-message::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(400%);
+    border-style: solid;
+    border-width: 0 10px 10px 10px;
+    border-color: transparent transparent #fff1c1 transparent;
+  }
+}
+
+.countdown-container:hover .hover-message {
+  opacity: 1;
+}
 @media only screen and (max-width: 600px) {
   .hero-inner {
     padding: 1em;

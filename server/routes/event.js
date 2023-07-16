@@ -91,6 +91,7 @@ router.post("/new", ensureAuthenticated, (req, res) => {
       checkInMessageDispatched: false,
       stopChecking: false,
       isDeleted: false,
+      
     });
 
     event.save().then((event) => {
@@ -120,6 +121,8 @@ router.post("/:id/checkin", ensureAuthenticated, (req, res) => {
           event.stopChecking = req.body.stopChecking;
           event.notes = req.body.notes === undefined ? "" : req.body.notes;
           event.nextCheckIn = DateTime.now().plus({ minutes: checkInInterval }).toISO();
+          event.firstMessageSent=false;
+          event.secondMessageSent=false;
 
           event.save().then((event) => {
             res.status = 200;
@@ -184,6 +187,8 @@ router.put("/:id", ensureAuthenticated, (req, res) => {
         if (new Date(req.body.eventDateTime) > new Date()) {
           event.stopChecking = false;
           event.nextCheckIn = req.body.eventDateTime;
+          firstMessageSent=false;
+          secondMessageSent=false;
         }
 
         event.save().then((event) => {

@@ -60,7 +60,7 @@ export default function CheckInModal({
 
   useEffect(() => {
     if (nextEvent?.nextCheckIn) {
-      setCountdownDate(DateTime.fromISO(nextEvent.nextCheckIn) + 600000);
+      setCountdownDate(DateTime.fromISO(nextEvent.nextCheckIn) + 120000);
     }
   }, [showModal, nextEvent]);
 
@@ -71,6 +71,9 @@ export default function CheckInModal({
           <div>It's Time to Check In</div>
           <div className="countdown-container">
             <Countdown date={countdownDate} renderer={renderer} />
+            <div className="hover-message">
+              Text message will be sent to your contacts
+            </div>
           </div>
         </div>
       </ModalHeader>

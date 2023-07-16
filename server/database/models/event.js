@@ -16,6 +16,8 @@ let eventSchema = new Schema(
     checkInMessageDispatched: Boolean,
     stopChecking: Boolean,
     isDeleted: { type: Boolean, default: false },
+    firstMessageSent: { type: Boolean, default: false }, 
+    secondMessageSent: { type: Boolean, default: false },
   },
   {
     timestamps: true,
